@@ -1,21 +1,23 @@
+import streamlit as st
 from processing import cari_resep_berdasarkan_judul, highlight_title_html
-from IPython.display import display, HTML
 
-while True:
-    print("\n=== Sistem Pencarian Resep ===")
-    query_user = input("Masukkan kata kunci judul (contoh: ayam goreng): ").strip()
+st.set_page_config(page_title="Cari Resep", layout="wide")
 
-    if query_user.lower() in ['exit', 'quit', 'keluar']:
-        print("👋 Terima kasih telah menggunakan sistem pencarian resep!")
-        break
+st.title("🍲 Sistem Pencarian Resep")
+st.markdown("Masukkan kata kunci berdasarkan **judul resep** (contoh: _ayam goreng_, _udang bakar_)")
 
-    hasil = cari_resep_berdasarkan_judul(query_user, top_n=5)
+query = st.text_input("🔍 Kata kunci resep:")
 
+if query:
+    hasil = cari_resep_berdasarkan_judul(query, top_n=5)
     if hasil.empty:
-        print("❌ Tidak ditemukan resep yang cocok.")
+        st.warning("❌ Tidak ditemukan resep yang cocok.")
     else:
-        query_words = query_user.lower().split()
+        query_words = query.lower().split()
         hasil["Title"] = hasil["Title"].apply(lambda x: highlight_title_html(x, query_words))
         hasil["Skor Kemiripan"] = hasil["Skor Kemiripan"].round(4)
         hasil_terpilih = hasil[["Title", "kategori", "Skor Kemiripan", "Ingredients"]]
-        display(HTML(hasil_terpilih.to_html(escape=False, index=False)))
+
+        # Tampilkan dalam format HTML
+        st.write("### ✨ Hasil Pencarian:")
+        st.write(hasil_terpilih.to_html(escape=False, index=False), unsafe_allow_html=True)
